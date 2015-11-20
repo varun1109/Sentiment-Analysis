@@ -21,7 +21,7 @@ function lines_from(file)
   return lines
 end
 
--dictionary = {}
+dictionary = {}
 -- print all line numbers and their contents
 final_word = {}
 lining={}

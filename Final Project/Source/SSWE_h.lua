@@ -1,12 +1,7 @@
 require 'torch'
 require 'nn'
 
---[[
-Dataset:
-i like nlp
-i hate dl
-i do math
-]]--
+
 
 -- Step 1: Define your vocabulary map
 function file_exists(file)
@@ -65,40 +60,6 @@ learning_rate=0.01
 window_size=3
 max_epochs=5
 
--- Step 3: Prepare your dataset
-local file = 'sswe_token.txt'
-local lines = lines_from(file)
-data ={}
-context_count =1
-for k,v in pairs(lines) do
-  --print (v)
-  j=0
-  for word in string.gmatch(v, '([^ ]+)') do
-    j =j+1
-    if j==3 then
-      input=torch.Tensor{dictionary[i],dictionary[i1],dictionary[word]} -- P(like | i, nlp)
-      output=torch.Tensor{1}
-      j=2
-      i= i1
-      i1 = word
-      data[context_count] ={input,output}
-      context_count = context_count +1
-      --print ('varun') 
-       
-    else if j==2 then
-      i1 = word
-    else
-      i= word
-    end
-    end 	 	
-    --print(word)
-  end 
-  --print (k)
-end
-function data:size() return context_count-1 end
-print (context_count)
-
-
 -- Step 4: Define your model
 model=nn.Sequential()
 model:add(nn.LookupTable(vocab_size,word_embed_size))
@@ -118,8 +79,46 @@ trainer.maxIteration=max_epochs
 print('Word Lookup before learning')
 --print(model.modules[1].weight)
 
+
+-- Step 3: Prepare your dataset
+local file = 'sswe_token.txt'
+local lines = lines_from(file)
+data ={}
+context_count =1
+function data:size() return context_count end
+for k,v in pairs(lines) do
+  --print (v)
+  j=0
+  for word in string.gmatch(v, '([^ ]+)') do
+    j =j+1
+    if j==3 then
+      input=torch.Tensor{dictionary[i],dictionary[i1],dictionary[word]} -- P(like | i, nlp)
+      output=torch.Tensor{1}
+      j=2
+      i= i1
+      i1 = word
+      data[context_count] ={input,output}
+      trainer:train(data) 
+      --context_count = context_count +1
+      --print ('varun') 
+       
+    else if j==2 then
+      i1 = word
+    else
+      i= word
+    end
+    end 	 	
+    --print(word)
+  end 
+  --print (k)
+end
+
+print (context_count)
+
+
+
 -- Step 7: Train the model with dataset
-trainer:train(data)
+
 
 -- Step 8: Get the word embeddings
 print('\nWord Lookup after learning')

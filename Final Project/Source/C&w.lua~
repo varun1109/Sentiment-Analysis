@@ -1,12 +1,7 @@
 require 'torch'
 require 'nn'
 
---[[
-Dataset:
-i like nlp
-i hate dl
-i do math
-]]--
+
 
 -- Step 1: Define your vocabulary map
 
@@ -27,77 +22,43 @@ function lines_from(file)
   return lines
 end
 
--- tests the functions above
-local file = 'dict.txt'
-local lines = lines_from(file)
-
 dictionary = {}
 -- print all line numbers and their contents
 final_word = {}
+lining={}
 count = 0
-for k,v in pairs(lines) do
-  --print (v)
-  j=1
-  count =count +1
-  for word in string.gmatch(v, '([^ ]+)') do
-    --print(word)
-    	
-    if j==2 then 
-      dictionary[i] = word
-      j=1
-    else
-      i = word
-      j= j+1
-    end    
-    --if not final_word[word] then 
-      --final_word[word] = count + 1 count = count + 1 end
-    --if not fuck[i] then fuck[v]=k end  
-  end 
---print (k)
-end
-
-
-print (count)
+j=0
+local file = 'dict.txt'
+local BUFSIZE = 2^13     -- 8K
+    local f = io.input(file)   -- open input file
+  --  local cc, lc, wc = 0, 0, 0   -- char, line, and word counts
+    while true do
+      local lines, rest = f:read(BUFSIZE, "*line")
+      if not lines then break end
+      if rest then lines = lines .. rest .. '\n' end
+  --ii    print(lines)
+	for word in string.gmatch(lines,'([^\n]+)') do
+	--print(word)
+	  j=1
+          for wording in string.gmatch(word, '([^ ]+)') do
+          	if j==2 then 
+            		dictionary[i] = wording
+            		j=1
+			count = count +1
+          	else
+            		i = wording
+            		j= j+1
+          	end    
+       	  end 
+        end
+      end
+--print (count)
 -- Step 2: Define constants
 vocab_size=count
 word_embed_size=50
 learning_rate=0.01
 window_size=3
 max_epochs=5
-
--- Step 3: Prepare your dataset
-local file = 'sswe_token.txt'
-local lines = lines_from(file)
-data ={}
-context_count =1
-for k,v in pairs(lines) do
-  --print (v)
-  j=0
-  for word in string.gmatch(v, '([^ ]+)') do
-    j =j+1
-    if j==3 then
-      input=torch.Tensor{dictionary[i],dictionary[word]} -- P(like | i, nlp)
-      output=torch.Tensor{dictionary[i1]}
-      j=2
-      i= i1
-      i1 = word
-      data[context_count] ={input,output}
-      context_count = context_count +1
-      --print ('varun') 
-       
-    else if j==2 then
-      i1 = word
-    else
-      i= word
-    end
-    end 	 	
-    --print(word)
-  end 
-  --print (k)
-end
-function data:size() return context_count-1 end
-print (context_count)
-
 
 -- Step 4: Define your model
 model=nn.Sequential()
@@ -115,12 +76,82 @@ trainer=nn.StochasticGradient(model,criterion)
 trainer.learningRate=learning_rate
 trainer.maxIteration=max_epochs
 
-print('Word Lookup before learning')
+
+
+
+
+
+
+
+
+
+-- Step 3: Prepare your dataset
+local file = 'sswe_token.txt'
+local lines = lines_from(file)
+data ={}
+context_count =1
+function data:size() return context_count end
+for k,v in pairs(lines) do
+  --print (v)
+  j=0
+  for word in string.gmatch(v, '([^ ]+)') do
+    j =j+1
+    if j==3 then
+      input=torch.Tensor{dictionary[i],dictionary[word]} -- P(like | i, nlp)
+      output=torch.Tensor{dictionary[i1]}
+      j=2
+      i= i1
+      i1 = word
+      data[context_count] ={input,output}
+      trainer:train(data)
+      --context_count = context_count +1
+      --print ('varun') 
+       
+    else if j==2 then
+      i1 = word
+    else
+      i= word
+    end
+    end 	 	
+    --print(word)
+  end 
+  --print (k)
+end
+
+--print (context_count)
+
+
+
+--print('Word Lookup before learning')
 --print(model.modules[1].weight)
 
 -- Step 7: Train the model with dataset
-trainer:train(data)
+
 
 -- Step 8: Get the word embeddings
-print('\nWord Lookup after learning')
-print(model.modules[1].weight)
+--print('\nWord Lookup after learning')
+vectors = model.modules[1].weight
+
+--print (vectors)
+
+array = {}
+
+
+
+i = 1
+
+while i<2  do
+x = vectors:sub(i,i,1,50)
+--print(y)
+
+table.insert(array, x)
+i = i+1
+end 
+
+file = torch.DiskFile('vector_syn.txt', 'w')
+file:writeObject(array)
+file:close()
+ 
+
+
+
